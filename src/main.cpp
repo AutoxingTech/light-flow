@@ -67,6 +67,7 @@ int main(int argc, char **argv)
     if (!reader.open(device.c_str(), params))
     {
         ROS_ERROR("Failed to open device [%s]", device.c_str());
+        ros::Duration(1).sleep();
         return -1;
     }
     ROS_INFO("success open device, start light flow node.");
