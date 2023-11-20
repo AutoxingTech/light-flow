@@ -80,6 +80,12 @@ int main(int argc, char **argv)
     {
         ros::spinOnce();
 
+        if (reader.hasHandleError())
+        {
+            ROS_ERROR("device lost");
+            break;
+        }
+
         bufferIndex = 0;
         bytesRead = reader.read(&buffer[bufferIndex], 1);
         if (bytesRead == -1 && (errno != EINTR && errno != EAGAIN))
@@ -104,20 +110,13 @@ int main(int argc, char **argv)
 
         int packLength = (int)sizeof(OpticalFlowPack);
         bufferIndex = 2;
-        while (ros::ok() && bufferIndex < packLength)
+        bytesRead = reader.read(&buffer[bufferIndex], packLength - bufferIndex);
+        if(bytesRead + bufferIndex != packLength)
         {
-            bytesRead = reader.read(&buffer[bufferIndex], packLength - bufferIndex);
-            // bytesRead = ::read(fd, &buffer[bufferIndex], packLength - bufferIndex);
-            if (bytesRead > 0)
-            {
-                bufferIndex += bytesRead;
-            }
-            else
-            {
-                ROS_WARN_THROTTLE(1, "read error. [ret = %d, errno = %d], retry", bytesRead, errno);
-            }
+            ROS_WARN("incomplete data");
+            rate.sleep();
+            continue;
         }
-
         // crc
         const OpticalFlowPack *pack = (OpticalFlowPack *)buffer;
         if (pack->header.length != 10)
@@ -142,6 +141,8 @@ int main(int argc, char **argv)
         pub.publish(msg);
         rate.sleep();
     }
+
+    reader.close();
 
     return 0;
 }
