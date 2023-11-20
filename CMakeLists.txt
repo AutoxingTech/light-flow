@@ -6,7 +6,12 @@ find_package(catkin REQUIRED COMPONENTS
   roslib
   std_msgs
   std_srvs
+  message_generation
 )
+
+add_message_files(DIRECTORY msgs FILES OpticalFlowPack.msg)
+
+generate_messages(DEPENDENCIES std_msgs)
 
 catkin_package(CATKIN_DEPENDS message_runtime std_msgs)
 
@@ -15,6 +20,7 @@ include_directories(include ${catkin_INCLUDE_DIRS})
 
 file(GLOB SRC_FILES
     src/main.cpp
+    src/com_stream.cpp
 )
 
 add_executable(${PROJECT_NAME} ${SRC_FILES})

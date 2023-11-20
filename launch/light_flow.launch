@@ -1,0 +1,6 @@
+<launch>
+    <arg name="output" default="screen" />
+
+    <node name="light_flow" pkg="light_flow" type="light_flow" required="true" output="$(arg output)">
+    </node>
+</launch>

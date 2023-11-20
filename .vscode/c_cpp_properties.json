@@ -7,6 +7,7 @@
       },
       "includePath": [
         "${workspaceFolder}/../../devel/include/**",
+        "${workspaceFolder}/src/**",
         "/opt/ros/noetic/include/**",
         "/usr/include/**"
       ],
