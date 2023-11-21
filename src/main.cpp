@@ -52,10 +52,11 @@ uint16_t calculateCRC16(const uint8_t *p, int len)
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "light_flow");
-    ros::NodeHandle nh;
+    ros::NodeHandle nh("~");
 
     std::string device;
     nh.param<std::string>("device", device, "/dev/ttyUSB0");
+    ROS_INFO("get device is %s", device.c_str());
 
     ros::Publisher pub = nh.advertise<light_flow::OpticalFlowPack>("/optical_flow", 10);
 
