@@ -7,7 +7,13 @@
 # 执行 usb 规则绑定，只有在本机只有一个 1a86:7523 的时候有效
 ./scripts/create_udev_rules.sh
 
-# 修改 launch 文件中的 device 字段
+# 检查 /dev/light_flow 是否是期望的设备，执行 cat 命令，有可能看到一些 UP 字样后面跟一些乱码
+cat /dev/light_flow
+UP
+xxxx
+xx
+
+# 启动
 roslaunch light_flow light_flow.launch
 ```
 
