@@ -2,6 +2,6 @@
     <arg name="output" default="screen" />
 
     <node name="light_flow" pkg="light_flow" type="light_flow" respawn="true" output="$(arg output)">
-        <param name="device" type="string" value="/dev/ttyUSB0"/>
+        <param name="device" type="string" value="/dev/light_flow"/>
     </node>
 </launch>
