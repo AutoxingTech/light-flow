@@ -7,6 +7,7 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   std_srvs
   message_generation
+  cln_msgs
 )
 
 add_message_files(DIRECTORY msgs FILES OpticalFlowPack.msg)
