@@ -9,7 +9,7 @@ find_package(catkin REQUIRED COMPONENTS
   message_generation
 )
 
-add_message_files(DIRECTORY msgs FILES OpticalFlowPack.msg)
+# add_message_files(DIRECTORY msgs FILES OpticalFlowPack.msg)
 
 generate_messages(DEPENDENCIES std_msgs)
 
