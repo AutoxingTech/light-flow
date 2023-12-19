@@ -1,5 +1,5 @@
 #include <ros/ros.h>
-#include <std_msgs/Int16MultiArray.h>
+#include <std_msgs/UInt8MultiArray.h>
 #include <fcntl.h>
 #include <termios.h>
 #include <unistd.h>
@@ -58,7 +58,7 @@ int main(int argc, char **argv)
     nh.param<std::string>("device", device, "/dev/ttyUSB0");
     ROS_INFO("get device is %s", device.c_str());
 
-    ros::Publisher pub = nh.advertise<light_flow::OpticalFlowPack>("/optical_flow", 10);
+    ros::Publisher pub = nh.advertise<std_msgs::UInt8MultiArray>("/optical_flow", 10);
 
     ComStream reader;
     ComParams params = {
@@ -73,13 +73,16 @@ int main(int argc, char **argv)
     }
     ROS_INFO("success open device, start light flow node.");
 
-    uint8_t buffer[1024];
-    int bufferIndex = 0;
+    const int bufferSize = 1024;
+    uint8_t buffer[bufferSize];
     int bytesRead;
     ros::Rate rate(120);
 
+    std_msgs::UInt8MultiArray msg;
+    msg.data.resize(bufferSize);
     while (ros::ok())
     {
+        msg.data.clear();
         ros::spinOnce();
 
         if (reader.hasHandleError())
@@ -88,58 +91,20 @@ int main(int argc, char **argv)
             break;
         }
 
-        bufferIndex = 0;
-        bytesRead = reader.read(&buffer[bufferIndex], 1);
+        bytesRead = reader.read(buffer, bufferSize);
         if (bytesRead == -1 && (errno != EINTR && errno != EAGAIN))
         {
             ROS_ERROR("read data error, [ret = %d, errno = %d] will exit...", bytesRead, errno);
             ros::Duration(1).sleep();
             break;
         }
-        if (buffer[bufferIndex] != 'U')
-            continue;
 
-        bufferIndex = 1;
-        bytesRead = reader.read(&buffer[bufferIndex], 1);
-        if (bytesRead == -1 && (errno != EINTR && errno != EAGAIN))
+        ROS_INFO("bytesRead is %d", bytesRead);
+        for (int i = 0; i < bytesRead; i++)
         {
-            ROS_ERROR("read data error, [ret = %d, errno = %d] will exit...", bytesRead, errno);
-            ros::Duration(1).sleep();
-            break;
-        }
-        if (buffer[bufferIndex] != 'P')
-            continue;
-
-        int packLength = (int)sizeof(OpticalFlowPack);
-        bufferIndex = 2;
-        bytesRead = reader.read(&buffer[bufferIndex], packLength - bufferIndex);
-        if(bytesRead + bufferIndex != packLength)
-        {
-            ROS_WARN("incomplete data");
-            rate.sleep();
-            continue;
-        }
-        // crc
-        const OpticalFlowPack *pack = (OpticalFlowPack *)buffer;
-        if (pack->header.length != 10)
-        {
-            ROS_WARN("length error, length = %d", pack->header.length);
-            continue;
-        }
-        uint16_t crc = calculateCRC16(&pack->header.payload[0], pack->header.length);
-        if (crc != pack->header.crc16)
-        {
-            ROS_WARN("CRC error");
-            continue;
+            msg.data.push_back(buffer[i]);
         }
 
-        light_flow::OpticalFlowPack msg;
-        msg.flow_x_integral = pack->flow_x_integral;
-        msg.flow_y_integral = pack->flow_y_integral;
-        msg.integration_timespan = pack->integration_timespan;
-        msg.ground_distance = pack->ground_distance;
-        msg.valid = pack->valid;
-        msg.version = pack->version;
         pub.publish(msg);
         rate.sleep();
     }
